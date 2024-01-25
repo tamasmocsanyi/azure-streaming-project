@@ -130,4 +130,7 @@ FROM
 ### Repeat the process, this time with humidity data
 ![Alt text](images/powerbi.gif)
 
-## Thank you for watching :rocket: 
+### Optionally you can export the job to your local computer and manage it with VS Code
+![Alt text](images/vs.png)
+
+## Thank you for watching! :rocket: 
