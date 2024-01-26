@@ -1,21 +1,20 @@
 ## Real-Time Power BI dashboard
 
-In this project, our focus is on integrating Azure Stream Analytics and Power BI to seamlessly ingest, process, and visualize real-time telemetry data.
+In this project, our focus is on integrating Azure Stream Analytics and Power BI to ingest, process, and visualize real-time telemetry data.
 
-Azure Stream Analytics is a cloud-based, fully managed real-time event-processing engine that allows users to process and analyze data streams.
+**Azure Stream Analytics** is a serverless, fully managed real-time event-processing solution on Azure, that allows users to ingest, process and analyze data streams.
+
 ![Alt text](images/arch3.png)
 
 
-<br>
-
-The data source is [**Raspberry Pi Azure IoT Online Simulator**](https://azure-samples.github.io/raspberry-pi-web-simulator/). This virtual device generates virtual temperature and humidity data, providing a realistic environment for the purpose of the project.
+The data source is [**Raspberry Pi Azure IoT Online Simulator**](https://azure-samples.github.io/raspberry-pi-web-simulator/). This virtual device acts like a sensor that generates real-time temperature and humidity data.It also provides a realistic environment for the project.
 
 ![Alt text](images/0-overview.png)
 
-We are going to establish the connection with the device using **IoT Hub**. 
+We are going to establish connection with the device through **IoT Hub**. 
 ### 1. Create IoT Hub.
 ### 2. Add new device.
-### 3. Replace the placeholder in line 15 with the Azure IoT hub device primary connection string.
+### 3. In the coding area of the device, replace the placeholder in line 15 with the Azure IoT hub device primary connection string.
  
  ![Alt text](images/device.png)
  ![Alt text](images/connstring.png)
@@ -35,7 +34,7 @@ To ingest and process the data, we are creating and configuring a Stream Analyti
 
 ### 5. Navigate to Query.
 
-We are now ready to test our pipeline using this simple script. Begin by launching the IoT simulator, then click Refresh to preview the data. Continue by starting the job. Once the job is active, navigate to the Blob storage specified as output, and confirm that the streaming data has been successfully ingested and stored.
+We are now ready to test our pipeline using this simple script. Begin by launching the IoT simulator, then click Refresh to preview the data. Continue by starting the job. Once the job is active, navigate to the Blob storage specified as output, and confirm the successful ingestion and storage of data.
 
 ![Alt text](images/query.png)
 
@@ -108,7 +107,11 @@ INTO
 FROM
     iotinput
 ``` 
-### We can test the output of the query by clicking on **Test query**.
+For aggregation we are using tumbling windows which group data into fixed size, non overlapping intervals. Calculations are performed separately for each interval.
+
+![Alt text](images/window.png)
+
+We can test the output of the query by clicking on **Test query**.
 ![Alt text](images/test.png)
 
 
@@ -130,7 +133,7 @@ FROM
 ### Repeat the process, this time with humidity data
 ![Alt text](images/powerbi.gif)
 
-### Optionally you can export the job to your local computer and manage it with VS Code
+### Optionally we can export and manage the job with VS Code on your local computer using the **Azure Stream Analytics Tools** extension.
 ![Alt text](images/vs.png)
 
 ## Thank you for watching! :rocket: 
