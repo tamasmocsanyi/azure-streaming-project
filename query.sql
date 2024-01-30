@@ -40,7 +40,7 @@ FROM
 FULL OUTER JOIN
     MinMaxData
 ON
-    DATEDIFF(minute, AvgData, MinMaxData) BETWEEN 0 AND 10 
+    1 = 1 
 
 SELECT *
 INTO 
