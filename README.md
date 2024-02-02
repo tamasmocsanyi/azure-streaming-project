@@ -2,9 +2,11 @@
 
 In this project, our focus is on integrating Azure Stream Analytics and Power BI to ingest, process, and visualize real-time telemetry data.
 
-**Azure Stream Analytics** is a serverless, fully managed real-time event-processing solution on Azure, that allows users to ingest, process and analyze data streams.
+**Azure Stream Analytics** is a serverless, fully managed real-time event-processing service on Azure, that allows users to ingest, process and analyze data streams.
 
-![Alt text](images/arch3.png)
+**Synapse Analytics** is a powerful data watehousing solution that offers big data processing ,storage and analytics. 
+
+![alt text](images/arch_new.png)
 
 
 The data source is [**Raspberry Pi Azure IoT Online Simulator**](https://azure-samples.github.io/raspberry-pi-web-simulator/). This virtual device acts like a sensor that generates real-time temperature and humidity data.It also provides a realistic environment for the project.
@@ -57,7 +59,13 @@ To create the dashboard we are using Power BI Service, the cloud based platform.
 To update the query, first we must stop the job. The query below returns aggregated (average, minimum, maximum) data for temperature and humidity.
 
 ```sql
-     -- Calculate 5-second average of temperature and humidity
+SELECT *
+INTO 
+    ADLSoutput
+FROM
+    iotinput
+     
+-- Calculate 5-second average of temperature and humidity
 WITH AvgData AS (
     SELECT
         AVG(temperature) AS avgTemperature,
@@ -99,13 +107,7 @@ FROM
 FULL OUTER JOIN
     MinMaxData
 ON
-    1 = 1 
-
-SELECT *
-INTO 
-    ADLSoutput
-FROM
-    iotinput
+    DATEDIFF(MINUTE, AvgData, MinMaxData) BETWEEN 0 AND 10
 ``` 
 For aggregation we are using tumbling windows which group data into fixed size, non overlapping intervals. Calculations are performed separately for each interval.
 
@@ -133,6 +135,75 @@ We can test the output of the query by clicking on **Test query**.
 ### Repeat the process, this time with humidity data
 ![Alt text](images/powerbi.gif)
 
+<br>
+
+## Synapse Analytics
+Data warehousing stands as a cornerstone in modern data management, offering organizations a powerful solution to consolidate, manage, and analyze large volumes of data. It offers benefits such as:
+- **Centralized storage**: Data is stored in one place for easy access.
+- **Optimized Performance**: Supports complex queries with fast performance and scalability.
+- **Data Integrity**: Ensures consistent and reliable data through governance and standards.
+- **Historical Analysis**: Enables tracking trends and forecasting.
+
+## Configuration
+- ### Create a Synapse Analytics workspace.
+- ### Create a dedicated SQL pool that allocates compute and storage resources to run queries and also serves as our database.
+- ### Reset the SQL admin password and create a new password. Synapse as a Stream Analytics job output requires authentication.
+
+![alt text](images/synapse1.png)
+### Navigate to your workspace and create a new table.
+
+![alt text](images/synapse2.png)
+
+### To avoid any errors in the dataflow, the column names and their order in the SQL table definition must correspond to the output of the Stream Analytics job query. 
+
+![alt text](images/synapse3.png) 
+
+### Navigate to the Stream Analytics job and configure Synapse as output.
+![alt text](images/synapse_output.png)
+
+- ### Modify the Stream Analytics job query to add the new output.
+- ### To send data to multiple outputs, you have to create separate copies of the respective part of the query for each output.
+
+```sql
+SELECT
+    AvgData.avgTemperature,
+    AvgData.avgHumidity,
+    MinMaxData.maxTemperature,
+    MinMaxData.minTemperature,
+    MinMaxData.maxHumidity,
+    MinMaxData.minHumidity,
+    COALESCE(AvgData.WindowEnd, MinMaxData.WindowEnd) AS WindowEnd
+INTO
+    powerbioutput --FIRST OUTPUT
+FROM
+    AvgData
+FULL OUTER JOIN
+    MinMaxData
+ON
+    DATEDIFF(MINUTE, AvgData, MinMaxData) BETWEEN 0 AND 10
+
+SELECT
+    AvgData.avgTemperature,
+    AvgData.avgHumidity,
+    MinMaxData.maxTemperature,
+    MinMaxData.minTemperature,
+    MinMaxData.maxHumidity,
+    MinMaxData.minHumidity,
+    COALESCE(AvgData.WindowEnd, MinMaxData.WindowEnd) AS WindowEnd
+INTO
+    synapse --SECOND OUTPUT
+FROM
+    AvgData
+FULL OUTER JOIN
+    MinMaxData
+ON
+    DATEDIFF(MINUTE, AvgData, MinMaxData) BETWEEN 0 AND 10
+```
+### Start the job and navigate to Synapse to retrieve the data.
+![alt text](images/query2.png)
+
+### Select Chart to create code-free visualizations.
+![alt text](images/chart.png)
 ### Optionally we can export and manage the job with VS Code on your local computer using the **Azure Stream Analytics Tools** extension.
 ![Alt text](images/vs.png)
 
